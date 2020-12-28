@@ -432,10 +432,10 @@ func (c *certificateRequestManager) processCertificate(ctx context.Context, crt 
 	// If the CertificateRequest exists but has failed then we check the if the
 	// failure time doesn't exist or is over an hour in the past then delete the
 	// request so it can be re-created on the next sync. If the failure time is
-	// less than an hour in the past then schedule this owning Certificate for a
+	// less than a minute in the past then schedule this owning Certificate for a
 	// re-sync in an hour.
 	case cmapi.CertificateRequestReasonFailed:
-		if existingReq.Status.FailureTime == nil || c.clock.Since(existingReq.Status.FailureTime.Time) > time.Hour {
+		if existingReq.Status.FailureTime == nil || c.clock.Since(existingReq.Status.FailureTime.Time) > time.Minute {
 			log.Info("deleting failed certificate request")
 			err := c.cmClient.CertmanagerV1alpha2().CertificateRequests(existingReq.Namespace).Delete(context.TODO(), existingReq.Name, metav1.DeleteOptions{})
 			if err != nil {
@@ -446,7 +446,7 @@ func (c *certificateRequestManager) processCertificate(ctx context.Context, crt 
 			return nil
 		}
 
-		log.Info("the failed existing certificate request failed less than an hour ago, will be scheduled for reprocessing in an hour")
+		log.Info("the failed existing certificate request failed less than a minute ago, will be scheduled for reprocessing in an minute")
 
 		key, err := keyFunc(crt)
 		if err != nil {
@@ -455,7 +455,7 @@ func (c *certificateRequestManager) processCertificate(ctx context.Context, crt 
 		}
 
 		// We don't fire an event here as this could be called multiple times in quick succession
-		c.scheduledWorkQueue.Add(key, time.Hour)
+		c.scheduledWorkQueue.Add(key, time.Minute)
 		return nil
 
 		// If the CertificateRequest is in a Ready state then we can decode,

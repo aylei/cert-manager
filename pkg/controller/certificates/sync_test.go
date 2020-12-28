@@ -1119,7 +1119,7 @@ func TestProcessCertificate(t *testing.T) {
 				ExpectedEvents:  []string{`Warning CertificateRequestInvalidRequest The failed CertificateRequest "test-850937773" is an invalid request and will no longer be processed`},
 			},
 		},
-		"if a temporary certificate exists but the request has failed and contains a FailureTime over an hour in the past, delete the request to cause a re-sync and retry": {
+		"if a temporary certificate exists but the request has failed and contains a FailureTime over a minute in the past, delete the request to cause a re-sync and retry": {
 			certificate: exampleBundle1.certificate,
 			builder: &testpkg.Builder{
 				KubeObjects: []runtime.Object{
@@ -1142,7 +1142,7 @@ func TestProcessCertificate(t *testing.T) {
 					exampleBundle1.certificate,
 					gen.CertificateRequestFrom(exampleBundle1.certificateRequestFailed,
 						gen.SetCertificateRequestFailureTime(metav1.Time{
-							Time: fixedClockStart.Add(-time.Minute * 61),
+							Time: fixedClockStart.Add(-time.Second * 61),
 						})),
 				},
 				ExpectedActions: []testpkg.Action{
@@ -1155,7 +1155,7 @@ func TestProcessCertificate(t *testing.T) {
 				ExpectedEvents: []string{`Normal CertificateRequestRetry The failed CertificateRequest "test-850937773" will be retried now`},
 			},
 		},
-		"if a temporary certificate exists but the request has failed and contains a FailureTime over an hour in the past but has an InvalidRequest condition, then don't retry": {
+		"if a temporary certificate exists but the request has failed and contains a FailureTime over a minut in the past but has an InvalidRequest condition, then don't retry": {
 			certificate: exampleBundle1.certificate,
 			builder: &testpkg.Builder{
 				KubeObjects: []runtime.Object{
@@ -1178,7 +1178,7 @@ func TestProcessCertificate(t *testing.T) {
 					exampleBundle1.certificate,
 					gen.CertificateRequestFrom(exampleBundle1.certificateRequestFailedInvalidRequest,
 						gen.SetCertificateRequestFailureTime(metav1.Time{
-							Time: fixedClockStart.Add(-time.Minute * 61),
+							Time: fixedClockStart.Add(-time.Second * 61),
 						})),
 				},
 				ExpectedActions: []testpkg.Action{},
@@ -1208,7 +1208,7 @@ func TestProcessCertificate(t *testing.T) {
 					exampleBundle1.certificate,
 					gen.CertificateRequestFrom(exampleBundle1.certificateRequestFailed,
 						gen.SetCertificateRequestFailureTime(metav1.Time{
-							Time: fixedClockStart.Add(-time.Minute * 59),
+							Time: fixedClockStart.Add(-time.Second * 59),
 						})),
 				},
 				ExpectedActions: []testpkg.Action{},
